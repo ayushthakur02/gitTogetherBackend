@@ -1,0 +1,19 @@
+{
+  "name": "gittogetherbackend",
+  "version": "1.0.0",
+  "description": "This is the backend for gitTogetherBackend",
+  "keywords": [
+    "nodejs",
+    "javascript"
+  ],
+  "license": "ISC",
+  "author": "Ayush Thakur",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

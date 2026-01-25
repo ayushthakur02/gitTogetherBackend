@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 const User = require("../models/user")
 const { authMiddleware } = require("../middleware/auth")
-const { updateUserValidation, getUserById } = require("../validation/user")
+const { updateUserValidation } = require("../validation/user")
 
 router.get("/users", authMiddleware, async (req, res) => {
 	try {
@@ -22,21 +22,26 @@ router.get("/user", authMiddleware, async (req, res) => {
 	}
 })
 
-router.get("/:id", authMiddleware, async (req, res) => {
+router.get("/profile", authMiddleware, async (req, res) => {
 	try {
-		const user = await User.findById(req.params.id)
-		if (!user) {
-			return res.status(404).send("User not found")
-		}
-		res.status(200).json(user)
+		res.status(200).json(req.user)
 	} catch (error) {
 		res.status(500).send("Error fetching user: " + error.message)
 	}
 })
 
-router.get("/profile", authMiddleware, async (req, res) => {
+router.post("/send-match-request", authMiddleware, async (req, res) => {
 	try {
-		const user = await getUserById(req.user._id)
+		const user = req.user
+		res.status(200).send(`${req.user.userName} sent a match request`)
+	} catch (error) {
+		res.status(500).send("Error sending match request: " + error.message)
+	}
+})
+
+router.get("/:id", authMiddleware, async (req, res) => {
+	try {
+		const user = await User.findById(req.params.id)
 		if (!user) {
 			return res.status(404).send("User not found")
 		}

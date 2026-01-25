@@ -12,7 +12,7 @@ app.use(cookieParser())
 
 // Routes
 app.use("/", authRoutes)
-app.use("/user", userRoutes)
+app.use("/", userRoutes)
 
 connectDB()
 	.then(() => {

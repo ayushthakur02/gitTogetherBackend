@@ -1,22 +1,19 @@
 const express = require("express")
-const router = express.Router()
+const authRouter = express.Router()
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const User = require("../models/user")
 
-router.post("/login", async (req, res) => {
+authRouter.post("/login", async (req, res) => {
 	try {
 		const { emailId, password } = req.body
 		const user = await User.findOne({ emailId })
 		if (!user) {
 			return res.status(400).send("Invalid email or password")
 		} else {
-			const isMatch = await bcrypt.compare(password, user.password)
+			const isMatch = await user.comparePassword(password)
 			if (isMatch) {
-				const token = await jwt.sign(
-					{ _id: user._id },
-					"process.env.JWT_SECRET_KEY",
-				)
+				const token = await user.getJWT()
 				res.cookie("token", token)
 				res.status(200).send("User logged in successfully")
 			} else {
@@ -28,7 +25,16 @@ router.post("/login", async (req, res) => {
 	}
 })
 
-router.post("/signup", async (req, res) => {
+authRouter.post("/logout", async (req, res) => {
+	try {
+		res.clearCookie("token")
+		res.status(200).send("User logged out successfully")
+	} catch (error) {
+		res.status(500).send("Error logging out user: " + error.message)
+	}
+})
+
+authRouter.post("/signup", async (req, res) => {
 	try {
 		const {
 			firstName,
@@ -71,4 +77,4 @@ router.post("/signup", async (req, res) => {
 	}
 })
 
-module.exports = router
+module.exports = authRouter

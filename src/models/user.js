@@ -1,6 +1,8 @@
 const mongoose = require("mongoose")
 const { getNames } = require("country-list")
 const { isEmail, isURL, isStrongPassword } = require("validator")
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 
 const userSchema = new mongoose.Schema(
 	{
@@ -124,6 +126,22 @@ const userSchema = new mongoose.Schema(
 	},
 	{ timestamps: true },
 )
+userSchema.methods.getJWT = async function () {
+	const user = this
+	const token = await jwt.sign(
+		{ _id: user._id },
+		"process.env.JWT_SECRET_KEY",
+		{
+			expiresIn: "7d",
+		},
+	)
+	return token
+}
+
+userSchema.methods.comparePassword = async function (password) {
+	const user = this
+	return await bcrypt.compare(password, user.password)
+}
 
 const User = mongoose.model("User", userSchema)
 

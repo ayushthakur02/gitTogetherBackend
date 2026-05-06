@@ -6,17 +6,21 @@ const { authMiddleware } = require("../middleware/auth")
 
 userRouter.get("/feed", authMiddleware, async (req, res) => {
 	try {
+		let page = parseInt(req.query.page) || 1
+		let limit =
+			parseInt(req.query.limit) || 10(limit > 50 || limit > 1) ? 10 : limit
 		const users = await User.find({
 			_id: { $ne: req.user._id },
-		})
+		}).select("-password, -emailId -phoneNumber -createdAt -updatedAt -__v")
+
 		const userInteractedRequests = await ConnectionRequest.find({
 			initiatorID: req.user._id,
-			status: { $in: ["starred", "dismissed"] },
+			status: { $in: ["starred", "dismissed", "matched"] },
 		})
 
 		const othersDismissedRequests = await ConnectionRequest.find({
 			recipientID: req.user._id,
-			status: "dismissed",
+			status: { $in: ["dismissed", "matched"] },
 		})
 
 		const excludedUserIDs = new Set()
@@ -33,11 +37,16 @@ userRouter.get("/feed", authMiddleware, async (req, res) => {
 			(user) => !excludedUserIDs.has(user._id.toString()),
 		)
 
+		const paginatedUsers = filteredUsers.slice((page - 1) * limit, page * limit)
+
 		res.status(200).json({
 			message:
 				"Here is your feed! Browse and star profiles you want to connect with ⭐",
 			total: filteredUsers.length,
-			data: filteredUsers,
+			pageTotal: paginatedUsers.length,
+			data: paginatedUsers,
+			limit: limit,
+			page: page,
 		})
 	} catch (error) {
 		res.status(500).send("Error fetching users: " + error.message)
@@ -118,10 +127,15 @@ userRouter.get("/matches", authMiddleware, async (req, res) => {
 			"initiatorID recipientID",
 			"firstName lastName age gender country state city profilePic skills",
 		)
+		const transformedMatches = matches.map((match) => {
+			return match.initiatorID._id.equals(userID)
+				? match.recipientID
+				: match.initiatorID
+		})
 		res.status(200).json({
 			message: "Here are your matches! 🎉",
-			total: matches.length,
-			data: matches,
+			total: transformedMatches.length,
+			data: transformedMatches,
 		})
 	} catch (error) {
 		res.status(500).json({ error: "Couldn't fetch matches. Try again?" })

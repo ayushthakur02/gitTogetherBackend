@@ -1,14 +1,20 @@
 const express = require("express")
 const connectDB = require("./config/database")
+const app = express()
 const cookieParser = require("cookie-parser")
+const cors = require("cors")
 
 const authRoutes = require("./routes/auth")
 const userRoutes = require("./routes/user")
 const requestRoutes = require("./routes/request")
 const profileRoutes = require("./routes/profile")
 
-const app = express()
-
+app.use(
+	cors({
+		origin: process.env.ORIGIN_URL,
+		credentials: true,
+	}),
+)
 app.use(express.json())
 app.use(cookieParser())
 

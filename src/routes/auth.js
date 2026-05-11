@@ -6,16 +6,25 @@ const User = require("../models/user")
 
 authRouter.post("/login", async (req, res) => {
 	try {
-		const { emailId, password } = req.body
-		const user = await User.findOne({ emailId })
+		const { userId, password } = req.body
+		const user = await User.findOne({
+			$or: [{ emailId: userId }, { userName: userId }],
+		})
 		if (!user) {
-			return res.status(400).send("Invalid email or password")
+			return res.status(400).send({ error: "Invalid email or password" })
 		} else {
 			const isMatch = await user.comparePassword(password)
 			if (isMatch) {
 				const token = await user.getJWT()
+				const userDetails = {
+					firstName: user.firstName,
+					lastName: user.lastName,
+					userName: user.userName,
+				}
 				res.cookie("token", token)
-				res.status(200).send("User logged in successfully")
+				res
+					.status(200)
+					.json({ ...userDetails, message: "Logged in successfully" })
 			} else {
 				return res.status(400).send("Invalid email or password")
 			}

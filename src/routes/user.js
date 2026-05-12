@@ -11,7 +11,7 @@ userRouter.get("/feed", authMiddleware, async (req, res) => {
 			parseInt(req.query.limit) || 10(limit > 50 || limit > 1) ? 10 : limit
 		const users = await User.find({
 			_id: { $ne: req.user._id },
-		}).select("-password, -emailId -phoneNumber -createdAt -updatedAt -__v")
+		}).select("-password -emailId -phoneNumber -createdAt -updatedAt -__v")
 
 		const userInteractedRequests = await ConnectionRequest.find({
 			initiatorID: req.user._id,

@@ -3,6 +3,7 @@ const authRouter = express.Router()
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const User = require("../models/user")
+const { authMiddleware } = require("../middleware/auth")
 
 authRouter.post("/login", async (req, res) => {
 	try {
@@ -16,15 +17,10 @@ authRouter.post("/login", async (req, res) => {
 			const isMatch = await user.comparePassword(password)
 			if (isMatch) {
 				const token = await user.getJWT()
-				const userDetails = {
-					firstName: user.firstName,
-					lastName: user.lastName,
-					userName: user.userName,
-				}
+				const userObj = user.toObject()
+				delete userObj.password
 				res.cookie("token", token)
-				res
-					.status(200)
-					.json({ ...userDetails, message: "Logged in successfully" })
+				res.status(200).json(userObj)
 			} else {
 				return res.status(400).send("Invalid email or password")
 			}
@@ -40,6 +36,15 @@ authRouter.post("/logout", async (req, res) => {
 		res.status(200).send("User logged out successfully")
 	} catch (error) {
 		res.status(500).send("Error logging out user: " + error.message)
+	}
+})
+
+authRouter.get("/me", authMiddleware, async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select("-password")
+		return res.status(200).json(user)
+	} catch (error) {
+		return res.status(500).send("Something went wrong")
 	}
 })
 

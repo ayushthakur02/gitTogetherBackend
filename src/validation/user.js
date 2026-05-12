@@ -12,7 +12,7 @@ const updateUserValidation = (data) => {
 }
 
 const verifyToken = (token) => {
-	return jwt.verify(token, "process.env.JWT_SECRET_KEY")
+	return jwt.verify(token, process.env.JWT_SECRET_KEY)
 }
 
 const getUserById = async (id) => {

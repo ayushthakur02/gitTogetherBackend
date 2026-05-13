@@ -76,19 +76,15 @@ const userSchema = new mongoose.Schema(
 		},
 		state: {
 			type: String,
-			required: true,
 		},
 		city: {
 			type: String,
-			required: true,
 		},
 		bio: {
 			type: String,
-			required: true,
 		},
 		profilePic: {
 			type: String,
-			required: true,
 			validate(value) {
 				if (!isURL(value)) {
 					throw new Error("Profile picture URL is not valid")
@@ -97,7 +93,6 @@ const userSchema = new mongoose.Schema(
 		},
 		morePhotos: {
 			type: [String],
-			required: true,
 			validate(value) {
 				const validURLS = value.every((url) => isURL(url))
 				if (!validURLS) {
@@ -109,7 +104,6 @@ const userSchema = new mongoose.Schema(
 		},
 		skills: {
 			type: [String],
-			required: true,
 			validate(value) {
 				if (value.length > 10) {
 					throw new Error("Skills cannot be more than 10")
@@ -118,7 +112,6 @@ const userSchema = new mongoose.Schema(
 		},
 		phoneNumber: {
 			type: String,
-			required: true,
 			unique: true,
 			validate(value) {
 				const phoneRegex = /^\d{7,15}$/

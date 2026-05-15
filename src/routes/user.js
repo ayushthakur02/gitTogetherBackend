@@ -64,9 +64,11 @@ userRouter.get("/feed", authMiddleware, async (req, res) => {
 // 	}
 // })
 
-userRouter.get("/user/:id", authMiddleware, async (req, res) => {
+userRouter.get("/:id", authMiddleware, async (req, res) => {
 	try {
-		const user = await User.findById(req.params.id)
+		const user = await User.findById(req.params.id).select(
+			"-password -emailId -phoneNumber -createdAt -updatedAt -__v",
+		)
 		if (!user) {
 			return res.status(404).send("User not found")
 		}

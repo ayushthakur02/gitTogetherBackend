@@ -8,7 +8,8 @@ userRouter.get("/feed", authMiddleware, async (req, res) => {
 	try {
 		let page = parseInt(req.query.page) || 1
 		let limit =
-			parseInt(req.query.limit) || 10(limit > 50 || limit > 1) ? 10 : limit
+			parseInt(req.query.limit) || 10
+		limit = limit > 50 || limit < 1 ? 10 : limit
 		const users = await User.find({
 			_id: { $ne: req.user._id },
 		}).select("-password -emailId -phoneNumber -createdAt -updatedAt -__v")
@@ -64,22 +65,12 @@ userRouter.get("/feed", authMiddleware, async (req, res) => {
 // 	}
 // })
 
-userRouter.get("/:id", authMiddleware, async (req, res) => {
-	try {
-		const user = await User.findById(req.params.id).select(
-			"-password -emailId -phoneNumber -createdAt -updatedAt -__v",
-		)
-		if (!user) {
-			return res.status(404).send("User not found")
-		}
-		res.status(200).json(user)
-	} catch (error) {
-		res.status(500).send("Error fetching user: " + error.message)
-	}
-})
-
 userRouter.get("/requests", authMiddleware, async (req, res) => {
 	try {
+		let page = parseInt(req.query.page) || 1
+		let limit =
+			parseInt(req.query.limit) || 10
+		limit = limit > 50 || limit < 1 ? 10 : limit
 		const userID = req.user._id
 		const starredRequests = await ConnectionRequest.find({
 			recipientID: userID,
@@ -104,11 +95,17 @@ userRouter.get("/requests", authMiddleware, async (req, res) => {
 			skills: request.initiatorID.skills,
 			createdAt: request.createdAt,
 		}))
-
+		const paginatedUsers = transformedRequests.slice(
+			(page - 1) * limit,
+			page * limit,
+		)
 		res.status(200).json({
 			message: "Here are the profiles that starred you ⭐",
 			total: transformedRequests.length,
-			data: transformedRequests,
+			pageTotal: paginatedUsers.length,
+			data: paginatedUsers,
+			limit: limit,
+			page: page,
 		})
 	} catch (error) {
 		res
@@ -119,6 +116,10 @@ userRouter.get("/requests", authMiddleware, async (req, res) => {
 
 userRouter.get("/matches", authMiddleware, async (req, res) => {
 	try {
+		let page = parseInt(req.query.page) || 1
+		let limit =
+			parseInt(req.query.limit) || 10
+		limit = limit > 50 || limit < 1 ? 10 : limit
 		const userID = req.user._id
 		const matches = await ConnectionRequest.find({
 			$or: [
@@ -134,13 +135,34 @@ userRouter.get("/matches", authMiddleware, async (req, res) => {
 				? match.recipientID
 				: match.initiatorID
 		})
+		const paginatedMatches = transformedMatches.slice(
+			(page - 1) * limit,
+			page * limit,
+		)
 		res.status(200).json({
 			message: "Here are your matches! 🎉",
 			total: transformedMatches.length,
-			data: transformedMatches,
+			pageTotal: paginatedMatches.length,
+			data: paginatedMatches,
+			limit: limit,
+			page: page,
 		})
 	} catch (error) {
 		res.status(500).json({ error: "Couldn't fetch matches. Try again?" })
+	}
+})
+
+userRouter.get("/:id", authMiddleware, async (req, res) => {
+	try {
+		const user = await User.findById(req.params.id).select(
+			"-password -emailId -phoneNumber -createdAt -updatedAt -__v",
+		)
+		if (!user) {
+			return res.status(404).send("User not found")
+		}
+		res.status(200).json(user)
+	} catch (error) {
+		res.status(500).send("Error fetching user: " + error.message)
 	}
 })
 

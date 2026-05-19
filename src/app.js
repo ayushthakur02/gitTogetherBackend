@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth")
 const userRoutes = require("./routes/user")
 const requestRoutes = require("./routes/request")
 const profileRoutes = require("./routes/profile")
+const uploadRoutes = require("./routes/upload")
 
 app.use(
 	cors({
@@ -23,6 +24,7 @@ app.use("/auth", authRoutes)
 app.use("/user", userRoutes)
 app.use("/request", requestRoutes)
 app.use("/profile", profileRoutes)
+app.use("/upload", uploadRoutes)
 
 connectDB()
 	.then(() => {

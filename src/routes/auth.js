@@ -19,7 +19,11 @@ authRouter.post("/login", async (req, res) => {
 				const token = await user.getJWT()
 				const userObj = user.toObject()
 				delete userObj.password
-				res.cookie("token", token)
+				res.cookie("token", token, {
+					httpOnly: true,
+					secure: true,
+					sameSite: "None",
+				})
 				res.status(200).json(userObj)
 			} else {
 				return res.status(400).send("Invalid email or password")
